@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1x1 Trainer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        h1 {
+            color: #1a2a3a;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        #progress {
+            background-color: #f0f4f8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #5d6d7e;
+            font-size: 0.9rem;
+        }
+
+        .question-box {
+            font-size: 3.5rem;
+            margin-bottom: 2.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px white;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+            font-size: 2rem;
+            border: 3px solid #e0e6ed;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield; /* Remove arrows Chrome/Safari */
+        }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+        }
+
+        button {
+            padding: 18px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            transition: transform 0.1s, background 0.3s;
+            width: 100%;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.98);
+            background-color: #2980b9;
+        }
+
+        .feedback {
+            margin-top: 2rem;
+            font-weight: 600;
+            height: 2rem;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .correct { color: #27ae60; }
+        .wrong { 
+            color: #e74c3c;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .hidden { display: none; }
+
+        /* Partial Multiplikation Styles */
+        .partial-grid {
+            display: inline-grid;
+            grid-template-columns: auto auto auto auto auto;
+            gap: 10px 8px;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-size: 1.4rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .partial-grid input, .partial-grid .cell-text {
+            width: 75px;
+            padding: 10px 8px;
+            font-size: 1.3rem;
+            margin-bottom: 0;
+            border-width: 2px;
+            text-align: right;
+            font-family: 'Courier New', Courier, monospace;
+            display: inline-block;
+            box-sizing: border-box;
+        }
+
+        .partial-grid .cell-text {
+            border: 2px solid transparent;
+            background: transparent;
+        }
+
+        .grid-line {
+            grid-column: 1 / span 5;
+            border-bottom: 2px solid #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .symbol-cell {
+            text-align: center;
+            min-width: 20px;
+        }
+
+        /* iPad Optimierung */
+        @media (pointer: coarse) {
+            button, input {
+                min-height: 70px; /* Größere Touch-Flächen */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="menu-container" class="container">
+        <h1>Mathe Trainer</h1>
+        <div class="input-area">
+            <button onclick="startApp('squares')" style="margin-bottom: 1rem;">Quadratzahlen</button>
+            <button onclick="startApp('multiplication')" style="margin-bottom: 1rem;">1x1 Multiplikation</button>
+            <button onclick="startApp('division')" style="margin-bottom: 1rem;">1x1 Division</button>
+            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-top: 1rem;">
+                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Halbschriftliche Multiplikation</p>
+                <button onclick="startApp('partial', 'level1')" style="margin-bottom: 0.8rem; background-color: #27ae60;">Zahlen bis 50</button>
+                <button onclick="startApp('partial', 'level2')" style="background-color: #e67e22;">Zahlen bis 100</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" class="container hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <button onclick="location.reload()" style="width: auto; padding: 8px 15px; font-size: 0.9rem; background-color: #95a5a6; box-shadow: none;">Zurück</button>
+            <h1 id="title" style="margin: 0; font-size: 1.5rem;">1x1 Trainer</h1>
+        </div>
+        <div class="stats">
+            <span id="progress">Aufgabe: 0 / 20</span>
+        </div>
+        <div class="question-box">
+            <div id="hint" style="font-size: 1.2rem; color: #5d6d7e; margin-bottom: 1rem; font-weight: normal; min-height: 1.5rem;"></div>
+            <span id="question">Lade...</span>
+        </div>
+        <div id="main-input-area" class="input-area">
+            <!-- inputmode="decimal" öffnet am iPad direkt den Ziffernblock -->
+            <input type="number" id="answer-input" placeholder="?" inputmode="decimal" autofocus>
+            <button id="submit-btn" onclick="checkAnswer()">Prüfen</button>
+            <button id="next-btn" class="hidden" onclick="generateQuestion()">Nächste Aufgabe</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <script>
+        let num1, num2, correctAnswer;
+        let scoreCorrect = 0;
+        let scoreWrong = 0;
+        let questionCounter = 0;
+        let isFirstAttempt = true;
+        let currentMode = 'multiplication';
+        let currentLevel = 'level1';
+        let currentSubStep = 0;
+        let partialT, partialE, partialS;
+        const maxQuestions = 20;
+
+        const menuContainer = document.getElementById('menu-container');
+        const gameContainer = document.getElementById('game-container');
+        const titleEl = document.getElementById('title');
+        const hintEl = document.getElementById('hint');
+        const questionEl = document.getElementById('question');
+        const inputEl = document.getElementById('answer-input');
+        const feedbackEl = document.getElementById('feedback');
+        const progressEl = document.getElementById('progress');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        function startApp(mode, level = 'level1') {
+            currentMode = mode;
+            currentLevel = level;
+            scoreCorrect = 0;
+            scoreWrong = 0;
+            questionCounter = 0;
+            
+            if (mode === 'squares') {
+                titleEl.textContent = 'Quadratzahlen';
+            } else if (mode === 'multiplication') {
+                titleEl.textContent = '1x1 Trainer';
+            } else if (mode === 'division') {
+                titleEl.textContent = 'Divisions Trainer';
+            } else if (mode === 'partial') {
+                titleEl.textContent = level === 'level1' ? 'Halbschriftlich (Level 1)' : 'Halbschriftlich (Level 2)';
+            }
+            
+            menuContainer.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            
+            setupInputArea();
+            generateQuestion();
+        }
+
+        function setupInputArea() {
+            const inputArea = document.getElementById('main-input-area');
+            if (currentMode === 'partial') {
+                inputArea.innerHTML = `
+                    <div class="partial-grid">
+                        <div class="cell-text" id="p-main-n1">24</div>
+                        <span class="symbol-cell">×</span>
+                        <div class="cell-text" id="p-main-n2">3</div>
+                        <span class="symbol-cell">=</span>
+                        <input type="number" id="p-total" placeholder="?" inputmode="decimal">
+                        
+                        <div class="grid-line"></div>
+                        
+                        <input type="number" id="p-t1" placeholder="?" inputmode="decimal"> 
+                        <span class="symbol-cell">×</span>
+                        <input type="number" id="p-t2" placeholder="?" inputmode="decimal"> 
+                        <span class="symbol-cell">=</span>
+                        <input type="number" id="p-r1" placeholder="?" inputmode="decimal">
+
+                        <input type="number" id="p-e1" placeholder="?" inputmode="decimal"> 
+                        <span class="symbol-cell">×</span>
+                        <input type="number" id="p-e2" placeholder="?" inputmode="decimal"> 
+                        <span class="symbol-cell">=</span>
+                        <input type="number" id="p-r2" placeholder="?" inputmode="decimal">
+                    </div>
+                    <button id="submit-btn" onclick="checkAnswer()">Prüfen</button>
+                    <button id="next-btn" class="hidden" onclick="generateQuestion()">Nächste Aufgabe</button>
+                `;
+                ['p-total', 'p-t1', 'p-t2', 'p-r1', 'p-e1', 'p-e2', 'p-r2'].forEach(id => {
+                    document.getElementById(id).addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') checkAnswer();
+                    });
+                });
+            } else {
+                inputArea.innerHTML = `
+                    <input type="number" id="answer-input" placeholder="?" inputmode="decimal" autofocus>
+                    <button id="submit-btn" onclick="checkAnswer()">Prüfen</button>
+                    <button id="next-btn" class="hidden" onclick="generateQuestion()">Nächste Aufgabe</button>
+                `;
+                document.getElementById('answer-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') checkAnswer();
+                });
+            }
+        }
+
+        function generateQuestion() {
+            const currentSubmitBtn = document.getElementById('submit-btn');
+            const currentNextBtn = document.getElementById('next-btn');
+
+            if (questionCounter >= maxQuestions) {
+                showResults();
+                return;
+            }
+
+            questionCounter++;
+            isFirstAttempt = true;
+            progressEl.textContent = `Aufgabe: ${questionCounter} / ${maxQuestions}`;
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'feedback';
+            currentNextBtn.classList.add('hidden');
+            currentSubmitBtn.classList.remove('hidden');
+
+            if (currentMode === 'squares') {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = num1;
+                correctAnswer = num1 * num2;
+                hintEl.textContent = "Gleiche Zahl mal gleiche Zahl";
+                questionEl.textContent = `${num1} × ${num2} = ?`;
+                const input = document.getElementById('answer-input');
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+            } else if (currentMode === 'multiplication') {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                correctAnswer = num1 * num2;
+                hintEl.textContent = "";
+                questionEl.textContent = `${num1} × ${num2} = ?`;
+                const input = document.getElementById('answer-input');
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+            } else if (currentMode === 'division') {
+                num2 = Math.floor(Math.random() * 10) + 1;
+                correctAnswer = Math.floor(Math.random() * 10) + 1;
+                num1 = num2 * correctAnswer;
+                hintEl.textContent = "Wie oft passt... ?";
+                questionEl.textContent = `${num1} : ${num2} = ?`;
+                const input = document.getElementById('answer-input');
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+            } else if (currentMode === 'partial') {
+                if (currentLevel === 'level1') {
+                    // Level 1: 10 bis 50
+                    partialT = (Math.floor(Math.random() * 4) + 1) * 10; // 10, 20, 30, 40
+                    partialE = Math.floor(Math.random() * 9) + 1; // 1-9
+                } else {
+                    // Level 2: 10 bis 100
+                    partialT = (Math.floor(Math.random() * 9) + 1) * 10; // 10 bis 90
+                    partialE = Math.floor(Math.random() * 9) + 1; // 1-9
+                }
+                partialS = Math.floor(Math.random() * 7) + 3; // 3-9 (einstellig)
+                
+                num1 = partialT + partialE;
+                num2 = partialS;
+                correctAnswer = num1 * num2;
+
+                questionEl.textContent = "Rechne halbschriftlich:";
+                document.getElementById('p-main-n1').textContent = num1;
+                document.getElementById('p-main-n2').textContent = num2;
+                
+                const inputs = ['p-total', 'p-t1', 'p-t2', 'p-r1', 'p-e1', 'p-e2', 'p-r2'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.value = '';
+                    el.disabled = false;
+                    el.style.borderColor = '#e0e6ed';
+                });
+                document.getElementById('p-total').focus();
+            }
+        }
+
+        function checkAnswer() {
+            const currentSubmitBtn = document.getElementById('submit-btn');
+
+            if (currentMode === 'partial') {
+                const vTotal = parseInt(document.getElementById('p-total').value);
+                const vt1 = parseInt(document.getElementById('p-t1').value);
+                const vt2 = parseInt(document.getElementById('p-t2').value);
+                const vr1 = parseInt(document.getElementById('p-r1').value);
+                const ve1 = parseInt(document.getElementById('p-e1').value);
+                const ve2 = parseInt(document.getElementById('p-e2').value);
+                const vr2 = parseInt(document.getElementById('p-r2').value);
+
+                const isCorrect = 
+                    vTotal === correctAnswer &&
+                    vt1 === partialT && vt2 === partialS && vr1 === (partialT * partialS) &&
+                    ve1 === partialE && ve2 === partialS && vr2 === (partialE * partialS);
+
+                if (isCorrect) {
+                    if (isFirstAttempt) scoreCorrect++;
+                    feedbackEl.textContent = "Richtig! ✨";
+                    feedbackEl.className = 'feedback correct';
+                    ['p-total', 'p-t1', 'p-t2', 'p-r1', 'p-e1', 'p-e2', 'p-r2'].forEach(id => {
+                        document.getElementById(id).disabled = true;
+                    });
+                    currentSubmitBtn.classList.add('hidden');
+                    setTimeout(generateQuestion, 1200);
+                } else {
+                    if (isFirstAttempt) {
+                        scoreWrong++;
+                        isFirstAttempt = false;
+                    }
+                    feedbackEl.textContent = "Da stimmt etwas noch nicht!";
+                    feedbackEl.className = 'feedback wrong';
+                    
+                    // Highlight errors
+                    document.getElementById('p-total').style.borderColor = vTotal === correctAnswer ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-t1').style.borderColor = vt1 === partialT ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-t2').style.borderColor = vt2 === partialS ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-r1').style.borderColor = vr1 === (partialT * partialS) ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-e1').style.borderColor = ve1 === partialE ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-e2').style.borderColor = ve2 === partialS ? '#27ae60' : '#e74c3c';
+                    document.getElementById('p-r2').style.borderColor = vr2 === (partialE * partialS) ? '#27ae60' : '#e74c3c';
+                }
+                return;
+            }
+
+            const currentInputEl = document.getElementById('answer-input');
+            const userAnswer = parseInt(currentInputEl.value);
+            
+            if (isNaN(userAnswer)) return;
+
+            if (userAnswer === correctAnswer) {
+                if (isFirstAttempt) {
+                    scoreCorrect++;
+                }
+                
+                feedbackEl.textContent = "Richtig! ✨";
+                feedbackEl.className = 'feedback correct';
+                
+                currentInputEl.disabled = true;
+                currentSubmitBtn.classList.add('hidden');
+                setTimeout(generateQuestion, 600);
+            } else {
+                if (isFirstAttempt) {
+                    scoreWrong++;
+                    isFirstAttempt = false;
+                }
+                if (currentMode === 'division') {
+                    hintEl.textContent = `Wie oft passt die ${num2} in die ${num1}?`;
+                }
+                feedbackEl.textContent = `Leider falsch. Probier es nochmal!`;
+                feedbackEl.className = 'feedback wrong';
+                currentInputEl.value = '';
+                currentInputEl.focus();
+            }
+        }
+
+        function showResults() {
+            let grade, comment;
+            const percentage = (scoreCorrect / maxQuestions) * 100;
+
+            if (scoreCorrect === 20) { grade = 1; comment = "Hervorragend!"; }
+            else if (scoreCorrect >= 18) { grade = 2; comment = "Gut gemacht!"; }
+            else if (scoreCorrect >= 15) { grade = 3; comment = "Befriedigend."; }
+            else if (scoreCorrect >= 12) { grade = 4; comment = "Noch okay."; }
+            else if (scoreCorrect >= 8) { grade = 5; comment = "Das muss besser werden."; }
+            else { grade = 6; comment = "Du solltest mehr üben!"; }
+
+            hintEl.textContent = "";
+            document.getElementById('main-input-area').innerHTML = `
+                <button onclick="location.reload()">Neustart (Menü)</button>
+            `;
+            
+            questionEl.style.fontSize = "1.5rem";
+            questionEl.innerHTML = `Training beendet!<br><br>Deine Note: <span style="font-size: 3rem; color: #3498db;">${grade}</span><br>${comment}`;
+            feedbackEl.textContent = `Punkte: ${scoreCorrect} von ${maxQuestions}`;
+            feedbackEl.className = 'feedback';
+        }
+    </script>
+</body>
+</html>
