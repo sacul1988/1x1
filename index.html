@@ -680,16 +680,28 @@
                 } else {
                     // Level 1: Einerstelle des Ergebnisses unter der Ziffer des Multiplikators
                     const expectedVal = num1 * num2;
-                    const expectedStr = expectedVal.toString().padStart(multiplierStartIndex + 1, ' ').padEnd(cols, ' ');
+                    const digitPos = multiplierStartIndex; // In Level 1 haben wir nur eine Ziffer im Multiplikator
+                    const expectedStr = expectedVal.toString().padStart(digitPos + 1, ' ').padEnd(cols, ' ');
                     
+                    let userRow0Str = '';
                     for (let i = 0; i < cols; i++) {
                         const el = document.getElementById(`w-row-0-cell-${i}`);
-                        const userChar = el.value.trim() || ' ';
-                        if (userChar === expectedStr[i]) {
-                            el.style.backgroundColor = '#d2f8d2';
-                        } else {
-                            el.style.backgroundColor = '#f8d2d2';
-                            allIntermediateCorrect = false;
+                        userRow0Str += el.value.trim() || ' ';
+                    }
+
+                    if (userRow0Str === expectedStr) {
+                        for (let i = 0; i < cols; i++) {
+                            document.getElementById(`w-row-0-cell-${i}`).style.backgroundColor = '#d2f8d2';
+                        }
+                    } else {
+                        allIntermediateCorrect = false;
+                        for (let i = 0; i < cols; i++) {
+                            const el = document.getElementById(`w-row-0-cell-${i}`);
+                            if ((el.value.trim() || ' ') === expectedStr[i]) {
+                                el.style.backgroundColor = '#d2f8d2';
+                            } else {
+                                el.style.backgroundColor = '#f8d2d2';
+                            }
                         }
                     }
                     finalSumCorrect = allIntermediateCorrect;
@@ -708,15 +720,18 @@
 
                     if (finalSumEmpty) {
                         finalSumCorrect = false;
+                    } else if (userFinalStr === finalStr) {
+                        for (let i = 0; i < cols; i++) {
+                            document.getElementById(`w-cell-${i}`).style.backgroundColor = '#d2f8d2';
+                        }
                     } else {
+                        finalSumCorrect = false;
                         for (let i = 0; i < cols; i++) {
                             const el = document.getElementById(`w-cell-${i}`);
-                            const val = el.value.trim() || ' ';
-                            if (val === finalStr[i]) {
+                            if ((el.value.trim() || ' ') === finalStr[i]) {
                                 el.style.backgroundColor = '#d2f8d2';
                             } else {
                                 el.style.backgroundColor = '#f8d2d2';
-                                finalSumCorrect = false;
                             }
                         }
                     }
