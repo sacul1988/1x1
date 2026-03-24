@@ -655,22 +655,44 @@
                     const matchedIndices = new Set();
                     userRows.forEach(userRow => {
                         let rowMatch = false;
+                        let matchedExpected = null;
+                        
                         intermediateResults.forEach((expected, idx) => {
-                            if (!matchedIndices.has(idx) && userRow.val === expected.val && userRow.val !== 0) {
-                                // Exakter Vergleich der Position (muss unter der Multiplikator-Ziffer enden)
-                                if (userRow.str === expected.str) {
-                                    rowMatch = true;
-                                    matchedIndices.add(idx);
-                                    for (let i = 0; i < cols; i++) {
-                                        document.getElementById(`w-row-${userRow.row}-cell-${i}`).style.backgroundColor = '#d2f8d2';
-                                    }
-                                }
+                            if (!matchedIndices.has(idx) && userRow.str === expected.str) {
+                                rowMatch = true;
+                                matchedExpected = expected;
+                                matchedIndices.add(idx);
                             }
                         });
-                        if (!rowMatch) {
-                            allIntermediateCorrect = false;
+
+                        if (rowMatch) {
                             for (let i = 0; i < cols; i++) {
-                                document.getElementById(`w-row-${userRow.row}-cell-${i}`).style.backgroundColor = '#f8d2d2';
+                                document.getElementById(`w-row-${userRow.row}-cell-${i}`).style.backgroundColor = '#d2f8d2';
+                            }
+                        } else {
+                            allIntermediateCorrect = false;
+                            // Suche die am besten passende Zeile aus den noch nicht genutzten erwarteten Ergebnissen
+                            // oder markiere einfach die falschen Ziffern gegen alle verbleibenden Möglichkeiten
+                            for (let i = 0; i < cols; i++) {
+                                const el = document.getElementById(`w-row-${userRow.row}-cell-${i}`);
+                                const userChar = el.value.trim() || ' ';
+                                
+                                // Wenn die Zelle leer ist und im erwarteten String an dieser Stelle auch ein Leerzeichen steht -> okay (weiß lassen)
+                                // Wir prüfen, ob dieser Charakter in IRGENDEINEM der noch nicht gematchten expectedStrings an dieser Position steht
+                                let charPossible = false;
+                                intermediateResults.forEach((expected, idx) => {
+                                    if (!matchedIndices.has(idx) && expected.str[i] === userChar) {
+                                        charPossible = true;
+                                    }
+                                });
+
+                                if (userChar === ' ') {
+                                    el.style.backgroundColor = 'white';
+                                } else if (charPossible) {
+                                    el.style.backgroundColor = '#d2f8d2';
+                                } else {
+                                    el.style.backgroundColor = '#f8d2d2';
+                                }
                             }
                         }
                     });
@@ -708,7 +730,10 @@
                 }
 
                 if (numRows > 1) {
-                    const finalStr = correctAnswer.toString().padStart(cols, ' ');
+                    // Die Summenzeile soll genau unter den Summanden ausgerichtet sein.
+                    // Das Gleichheitszeichen steht an Index 'cols - 1'.
+                    // Die Einerstelle des Ergebnisses muss daher an Index 'cols - 2' stehen (ein Kästchen links vom '=').
+                    const finalStr = correctAnswer.toString().padStart(cols - 1, ' ').padEnd(cols, ' ');
                     let userFinalStr = '';
                     let finalSumEmpty = true;
                     for (let i = 0; i < cols; i++) {
@@ -720,18 +745,23 @@
 
                     if (finalSumEmpty) {
                         finalSumCorrect = false;
-                    } else if (userFinalStr === finalStr) {
-                        for (let i = 0; i < cols; i++) {
-                            document.getElementById(`w-cell-${i}`).style.backgroundColor = '#d2f8d2';
-                        }
                     } else {
-                        finalSumCorrect = false;
-                        for (let i = 0; i < cols; i++) {
-                            const el = document.getElementById(`w-cell-${i}`);
-                            if ((el.value.trim() || ' ') === finalStr[i]) {
-                                el.style.backgroundColor = '#d2f8d2';
-                            } else {
-                                el.style.backgroundColor = '#f8d2d2';
+                        // Wir prüfen numerisch UND visuell gegen den um 1 nach links versetzten finalStr
+                        const userVal = parseInt(userFinalStr.trim()) || 0;
+                        if (userVal === correctAnswer && userFinalStr === finalStr) {
+                            for (let i = 0; i < cols; i++) {
+                                document.getElementById(`w-cell-${i}`).style.backgroundColor = '#d2f8d2';
+                            }
+                        } else {
+                            finalSumCorrect = false;
+                            for (let i = 0; i < cols; i++) {
+                                const el = document.getElementById(`w-cell-${i}`);
+                                const userChar = el.value.trim() || ' ';
+                                if (userChar === finalStr[i]) {
+                                    el.style.backgroundColor = '#d2f8d2';
+                                } else {
+                                    el.style.backgroundColor = '#f8d2d2';
+                                }
                             }
                         }
                     }
