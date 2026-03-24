@@ -164,6 +164,80 @@
             min-width: 20px;
         }
 
+        /* Schrifltiche Multiplikation Styles */
+        .written-multiplication-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .written-task {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0px;
+            display: grid;
+            gap: 2px;
+            padding: 2px;
+            border-bottom: 2px solid #333;
+        }
+
+        .written-task span {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .written-grid {
+            display: grid;
+            gap: 2px;
+            background-color: #ddd;
+            border: 1px solid #999;
+            padding: 2px;
+            justify-content: center;
+            border-top: none;
+        }
+
+        .written-grid input {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            font-size: 1.5rem;
+            text-align: center;
+            background: white;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .written-grid input::-webkit-outer-spin-button,
+        .written-grid input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .written-grid input:focus {
+            background: #fff9c4;
+            box-shadow: none;
+            border: none;
+        }
+
+        .written-row-sum {
+            border-top: 2px solid #333 !important;
+        }
+
+        .written-grid .carry-cell {
+            background-color: #fef9e7;
+            font-size: 0.9rem;
+            height: 25px;
+            color: #999;
+        }
+
         /* Zahlenreihen Grid */
         .series-grid {
             display: grid;
@@ -208,6 +282,12 @@
                 <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Halbschriftliche Multiplikation</p>
                 <button onclick="startApp('partial', 'level1')" style="margin-bottom: 0.8rem; background-color: #27ae60;">Zahlen bis 50</button>
                 <button onclick="startApp('partial', 'level2')" style="background-color: #e67e22;">Zahlen bis 100</button>
+            </div>
+
+            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-top: 1rem;">
+                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Schriftliche Multiplikation</p>
+                <button onclick="startApp('written', 'level1')" style="margin-bottom: 0.8rem; background-color: #e74c3c;">Zahlen bis 1000 · Einer</button>
+                <button onclick="startApp('written', 'level2')" style="background-color: #c0392b;">Zahlen bis 1000 · Zehner</button>
             </div>
         </div>
     </div>
@@ -273,6 +353,8 @@
                 titleEl.textContent = 'Zahlenreihen';
             } else if (mode === 'partial') {
                 titleEl.textContent = level === 'level1' ? 'Halbschriftlich (Level 1)' : 'Halbschriftlich (Level 2)';
+            } else if (mode === 'written') {
+                titleEl.textContent = level === 'level1' ? 'Schriftlich (Lvl 1)' : 'Schriftlich (Lvl 2)';
             }
             
             menuContainer.classList.add('hidden');
@@ -284,7 +366,21 @@
 
         function setupInputArea() {
             const inputArea = document.getElementById('main-input-area');
-            if (currentMode === 'partial') {
+            if (currentMode === 'written') {
+                // Determine layout based on number of digits
+                let n1_len = num1 ? num1.toString().length : 3;
+                let n2_len = num2 ? num2.toString().length : 1;
+                let total_cols = n1_len + n2_len + 2; // e.g., 234 * 3 -> 3+1+2 = 6
+
+                let gridContent = `<div class="written-multiplication-container">
+                    <div class="written-task" id="w-task"></div>
+                    <div class="written-grid" id="w-grid"></div>
+                </div>`;
+                inputArea.innerHTML = gridContent + `
+                    <button id="submit-btn" onclick="checkAnswer()">Prüfen</button>
+                    <button id="next-btn" class="hidden" onclick="generateQuestion()">Nächste Aufgabe</button>
+                `;
+            } else if (currentMode === 'partial') {
                 inputArea.innerHTML = `
                     <div class="partial-grid">
                         <div class="cell-text" id="p-main-n1">24</div>
@@ -369,7 +465,80 @@
             currentNextBtn.classList.add('hidden');
             currentSubmitBtn.classList.remove('hidden');
 
-            if (currentMode === 'squares') {
+            if (currentMode === 'written') {
+                if (currentLevel === 'level1') {
+                    num1 = Math.floor(Math.random() * 900) + 100; // 100-999
+                    num2 = Math.floor(Math.random() * 8) + 2;     // 2-9
+                } else {
+                    num1 = Math.floor(Math.random() * 991) + 10;  // 10-1000
+                    num2 = Math.floor(Math.random() * 90) + 10;   // 10-99
+                }
+                correctAnswer = num1 * num2;
+                
+                questionEl.textContent = "Berechne schriftlich:";
+                
+                const taskStr = `${num1}·${num2}=`;
+                const multiplierStr = num2.toString();
+                const numRows = multiplierStr.length;
+                
+                // Wir nehmen als Basis die Breite der Aufgabe
+                const cols = taskStr.length;
+                
+                const taskContainer = document.getElementById('w-task');
+                taskContainer.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+                
+                // Keine Auffüllung mit Leerzeichen mehr nötig, da wir cols = taskStr.length nutzen
+                let taskHtml = '';
+                for(let char of taskStr) {
+                    taskHtml += `<span>${char}</span>`;
+                }
+                taskContainer.innerHTML = taskHtml;
+                
+                const grid = document.getElementById('w-grid');
+                grid.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+                
+                let gridHtml = '';
+                const multiplierStartIndex = taskStr.indexOf(multiplierStr);
+
+                // intermediate result rows
+                if (numRows > 1) {
+                    for(let r=0; r < numRows; r++) {
+                        for(let i=0; i < cols; i++) {
+                            gridHtml += `<input type="number" id="w-row-${r}-cell-${i}" inputmode="decimal">`;
+                        }
+                    }
+                    gridHtml += `<div style="grid-column: 1 / span ${cols}; border-top: 2px solid #333; height: 0; margin-top: 5px;"></div>`;
+                }
+
+                // Final sum row
+                for(let i=0; i < cols; i++) {
+                    const plusSign = (i === 0 && numRows > 1) ? '<span style="position: absolute; left: -25px; font-size: 1.2rem;">+</span>' : '';
+                    const id = numRows > 1 ? `w-cell-${i}` : `w-row-0-cell-${i}`;
+                    gridHtml += `<div style="position: relative;"><input type="number" id="${id}" inputmode="decimal" class="${numRows > 1 ? 'written-row-sum' : ''}">${plusSign}</div>`;
+                }
+                grid.innerHTML = gridHtml;
+                
+                // Add event listeners to all inputs
+                const allInputs = Array.from(grid.querySelectorAll('input'));
+                allInputs.forEach((el, index) => {
+                    el.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') checkAnswer();
+                    });
+                    el.addEventListener('input', () => {
+                        if (el.value.length >= 1) {
+                            // Find the index of the current input in the global list
+                            const currentIndex = allInputs.indexOf(el);
+                            // Jump to the input on the left (if it's in the same row)
+                            // In our grid, "left" means index - 1, but we only jump if it's not the first cell of a row
+                            if (currentIndex > 0 && (currentIndex % cols) !== 0) {
+                                allInputs[currentIndex - 1].focus();
+                            }
+                        }
+                    });
+                });
+                
+                // No auto-focus as requested
+            } else if (currentMode === 'squares') {
                 num1 = Math.floor(Math.random() * 10) + 1;
                 num2 = num1;
                 correctAnswer = num1 * num2;
@@ -447,6 +616,130 @@
 
         function checkAnswer() {
             const currentSubmitBtn = document.getElementById('submit-btn');
+
+            if (currentMode === 'written') {
+                const multiplierStr = num2.toString();
+                const numRows = multiplierStr.length;
+                const taskStr = `${num1}·${num2}=`;
+                const cols = taskStr.length;
+                const multiplierStartIndex = taskStr.indexOf(multiplierStr);
+
+                let allIntermediateCorrect = true;
+                let finalSumCorrect = true;
+
+                // 1. Check Intermediate Results
+                if (numRows > 1) {
+                    const intermediateResults = [];
+                    for (let r = 0; r < numRows; r++) {
+                        const digit = parseInt(multiplierStr[r]);
+                        // Wir berechnen das Teilergebnis OHNE die Zehner-Nullen für die Ausrichtung
+                        // 123 * 10 -> wir prüfen 123, endend unter der 1
+                        const rowVal = num1 * digit;
+                        
+                        // Die Zahl muss EXAKT unter der Ziffer enden, mit der multipliziert wurde
+                        const digitPos = multiplierStartIndex + r;
+                        const expectedStr = rowVal.toString().padStart(digitPos + 1, ' ').padEnd(cols, ' ');
+                        intermediateResults.push({val: rowVal, str: expectedStr});
+                    }
+
+                    const userRows = [];
+                    for (let r = 0; r < numRows; r++) {
+                        let rowStr = '';
+                        for (let i = 0; i < cols; i++) {
+                            const el = document.getElementById(`w-row-${r}-cell-${i}`);
+                            rowStr += el.value.trim() || ' ';
+                        }
+                        userRows.push({ row: r, str: rowStr, val: parseInt(rowStr.trim()) || 0 });
+                    }
+
+                    const matchedIndices = new Set();
+                    userRows.forEach(userRow => {
+                        let rowMatch = false;
+                        intermediateResults.forEach((expected, idx) => {
+                            if (!matchedIndices.has(idx) && userRow.val === expected.val && userRow.val !== 0) {
+                                // Exakter Vergleich der Position (muss unter der Multiplikator-Ziffer enden)
+                                if (userRow.str === expected.str) {
+                                    rowMatch = true;
+                                    matchedIndices.add(idx);
+                                    for (let i = 0; i < cols; i++) {
+                                        document.getElementById(`w-row-${userRow.row}-cell-${i}`).style.backgroundColor = '#d2f8d2';
+                                    }
+                                }
+                            }
+                        });
+                        if (!rowMatch) {
+                            allIntermediateCorrect = false;
+                            for (let i = 0; i < cols; i++) {
+                                document.getElementById(`w-row-${userRow.row}-cell-${i}`).style.backgroundColor = '#f8d2d2';
+                            }
+                        }
+                    });
+                    
+                    if (matchedIndices.size < intermediateResults.length) allIntermediateCorrect = false;
+
+                } else {
+                    // Level 1: Einerstelle des Ergebnisses unter der Ziffer des Multiplikators
+                    const expectedVal = num1 * num2;
+                    const expectedStr = expectedVal.toString().padStart(multiplierStartIndex + 1, ' ').padEnd(cols, ' ');
+                    
+                    for (let i = 0; i < cols; i++) {
+                        const el = document.getElementById(`w-row-0-cell-${i}`);
+                        const userChar = el.value.trim() || ' ';
+                        if (userChar === expectedStr[i]) {
+                            el.style.backgroundColor = '#d2f8d2';
+                        } else {
+                            el.style.backgroundColor = '#f8d2d2';
+                            allIntermediateCorrect = false;
+                        }
+                    }
+                    finalSumCorrect = allIntermediateCorrect;
+                }
+
+                if (numRows > 1) {
+                    const finalStr = correctAnswer.toString().padStart(cols, ' ');
+                    let userFinalStr = '';
+                    let finalSumEmpty = true;
+                    for (let i = 0; i < cols; i++) {
+                        const el = document.getElementById(`w-cell-${i}`);
+                        const val = el.value.trim();
+                        if (val !== '') finalSumEmpty = false;
+                        userFinalStr += val || ' ';
+                    }
+
+                    if (finalSumEmpty) {
+                        finalSumCorrect = false;
+                    } else {
+                        for (let i = 0; i < cols; i++) {
+                            const el = document.getElementById(`w-cell-${i}`);
+                            const val = el.value.trim() || ' ';
+                            if (val === finalStr[i]) {
+                                el.style.backgroundColor = '#d2f8d2';
+                            } else {
+                                el.style.backgroundColor = '#f8d2d2';
+                                finalSumCorrect = false;
+                            }
+                        }
+                    }
+                }
+
+                if (allIntermediateCorrect && finalSumCorrect) {
+                    if (isFirstAttempt) scoreCorrect++;
+                    feedbackEl.textContent = "Hervorragend! Alles richtig. ✨";
+                    feedbackEl.className = 'feedback correct';
+                    const allInputs = document.getElementById('w-grid').querySelectorAll('input');
+                    allInputs.forEach(el => el.disabled = true);
+                    currentSubmitBtn.classList.add('hidden');
+                    setTimeout(generateQuestion, 1500);
+                } else {
+                    if (isFirstAttempt) {
+                        scoreWrong++;
+                        isFirstAttempt = false;
+                    }
+                    feedbackEl.textContent = "Da ist noch ein Fehler versteckt!";
+                    feedbackEl.className = 'feedback wrong';
+                }
+                return;
+            }
 
             if (currentMode === 'series') {
                 const step = parseInt(currentLevel);
