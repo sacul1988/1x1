@@ -316,6 +316,12 @@
             transform: none;
         }
 
+        .carry-memory button.correct {
+            background-color: #f1c40f;
+            color: #1a2a3a;
+            transform: none;
+        }
+
         .written-submit {
             margin-top: 0.6rem;
         }
@@ -661,17 +667,20 @@
                     const carryButton = document.createElement('button');
                     carryButton.type = 'button';
                     carryButton.textContent = i;
+                    carryButton.dataset.carry = String(i);
                     carryButton.setAttribute('aria-pressed', 'false');
-                    carryButton.addEventListener('click', () => {
-                        carryButton.classList.toggle('selected');
-                        carryButton.setAttribute('aria-pressed', carryButton.classList.contains('selected'));
-                    });
                     carryMemory.appendChild(carryButton);
                 }
+                updateWrittenCarryMarks();
                 
                 // Add event listeners to all inputs
                 const allInputs = Array.from(grid.querySelectorAll('input'));
                 allInputs.forEach((el, index) => {
+                    el.addEventListener('input', () => {
+                        if (currentMode === 'written') {
+                            updateWrittenCarryMarks();
+                        }
+                    });
                     el.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             checkAnswer();
@@ -703,10 +712,7 @@
                     });
                     el.addEventListener('input', () => {
                         if (el.value.length >= 1) {
-                            // Find the index of the current input in the global list
                             const currentIndex = allInputs.indexOf(el);
-                            // Jump to the input on the left (if it's in the same row)
-                            // In our grid, "left" means index - 1, but we only jump if it's not the first cell of a row
                             if (currentIndex > 0 && (currentIndex % cols) !== 0) {
                                 allInputs[currentIndex - 1].focus();
                             }
@@ -789,6 +795,55 @@
                 }
                 document.getElementById('s-input-0').focus();
             }
+        }
+
+        function updateWrittenCarryMarks() {
+            const carryMemory = document.getElementById('carry-memory');
+            if (!carryMemory) return;
+
+            const buttons = Array.from(carryMemory.querySelectorAll('button[data-carry]'));
+            buttons.forEach(btn => {
+                btn.classList.remove('correct');
+                btn.setAttribute('aria-pressed', 'false');
+            });
+
+            if (currentMode !== 'written' || !num1 || !num2) return;
+
+            const multiplierStr = num2.toString();
+            const cols = `${num1}·${num2}=`.length;
+            const rowCount = multiplierStr.length > 1 ? multiplierStr.length : 1;
+
+            let currentCarry = null;
+
+            for (let r = 0; r < rowCount; r++) {
+                const digit = parseInt(multiplierStr[r], 10);
+                const digitPos = num1.toString().length + 1 + r;
+                const multiplicandDigits = num1.toString().split('').map(Number);
+                let carryIn = 0;
+
+                for (let m = multiplicandDigits.length - 1; m >= 0; m--) {
+                    const product = multiplicandDigits[m] * digit + carryIn;
+                    const carryOut = Math.floor(product / 10);
+                    const expectedDigit = String(product % 10);
+                    const outputIndex = digitPos - (multiplicandDigits.length - 1 - m);
+                    const outputCell = document.getElementById(`w-row-${r}-cell-${outputIndex}`);
+                    const userDigit = outputCell ? outputCell.value.trim() : '';
+
+                    if (userDigit === expectedDigit && carryOut >= 1 && carryOut <= 9) {
+                        currentCarry = carryOut;
+                    }
+
+                    carryIn = carryOut;
+                }
+            }
+
+            buttons.forEach(btn => {
+                const carry = Number(btn.dataset.carry);
+                if (carry === currentCarry) {
+                    btn.classList.add('correct');
+                    btn.setAttribute('aria-pressed', 'true');
+                }
+            });
         }
 
         function checkAnswer() {
