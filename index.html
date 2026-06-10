@@ -33,6 +33,43 @@
             font-size: 2rem;
         }
 
+        #menu-container {
+            max-width: 430px;
+        }
+
+        .menu-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .menu-section {
+            background: #f0f4f8;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        .menu-section-title {
+            margin: 0 0 0.8rem;
+            font-weight: bold;
+            color: #5d6d7e;
+        }
+
+        .menu-section button + button {
+            margin-top: 0.8rem;
+        }
+
+        .btn-series {
+            background-color: #9b59b6;
+        }
+
+        .btn-partial {
+            background-color: #27ae60;
+        }
+
+        .btn-written {
+            background-color: #e67e22;
+        }
+
         .stats {
             display: flex;
             justify-content: center;
@@ -238,6 +275,44 @@
             color: #999;
         }
 
+        .carry-memory {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 1.8rem 0 1.8rem;
+        }
+
+        .carry-memory-title {
+            margin-top: 1.8rem;
+            color: #5d6d7e;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .carry-memory button {
+            width: 36px;
+            height: 36px;
+            min-height: 0;
+            padding: 0;
+            border-radius: 50%;
+            background-color: #eef3f7;
+            color: #2c3e50;
+            box-shadow: none;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .carry-memory button.selected {
+            background-color: #f1c40f;
+            color: #1a2a3a;
+            transform: none;
+        }
+
+        .written-submit {
+            margin-top: 0.6rem;
+        }
+
         /* Zahlenreihen Grid */
         .series-grid {
             display: grid;
@@ -260,34 +335,62 @@
                 min-height: 70px; /* Größere Touch-Flächen */
             }
         }
+
+        @media (min-width: 760px) {
+            #menu-container {
+                max-width: 860px;
+                padding: 3rem;
+            }
+
+            #menu-container h1 {
+                font-size: 2.4rem;
+                margin-bottom: 2.2rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                align-items: stretch;
+            }
+
+            .menu-section {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                min-height: 150px;
+            }
+
+            .menu-section button:first-of-type {
+                margin-top: auto;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="menu-container" class="container">
         <h1>Mathe Trainer</h1>
-        <div class="input-area">
-            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-bottom: 1rem;">
-                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Zahlenreihen</p>
-                <button onclick="startApp('series')" style="background-color: #9b59b6;">Zahlenreihen (gemischt)</button>
+        <div class="input-area menu-grid">
+            <div class="menu-section">
+                <p class="menu-section-title">Zahlenreihen</p>
+                <button class="btn-series" onclick="startApp('series')">Zahlenreihen (gemischt)</button>
             </div>
             
-            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-bottom: 1rem;">
-                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Einmaleins & Quadratzahlen</p>
-                <button onclick="startApp('squares')" style="margin-bottom: 1rem;">Quadratzahlen</button>
-                <button onclick="startApp('multiplication')" style="margin-bottom: 1rem;">1x1 Multiplikation</button>
-                <button onclick="startApp('division')" style="margin-bottom: 1rem;">1x1 Division</button>
+            <div class="menu-section">
+                <p class="menu-section-title">Einmaleins & Quadratzahlen</p>
+                <button onclick="startApp('squares')">Quadratzahlen</button>
+                <button onclick="startApp('multiplication')">1x1 Multiplikation</button>
+                <button onclick="startApp('division')">1x1 Division</button>
             </div>
 
-            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-top: 1rem;">
-                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Halbschriftliche Multiplikation</p>
-                <button onclick="startApp('partial', 'level1')" style="margin-bottom: 0.8rem; background-color: #27ae60;">Zahlen bis 50</button>
-                <button onclick="startApp('partial', 'level2')" style="background-color: #27ae60;">Zahlen bis 100</button>
+            <div class="menu-section">
+                <p class="menu-section-title">Halbschriftliche Multiplikation</p>
+                <button class="btn-partial" onclick="startApp('partial', 'level1')">Zahlen bis 50</button>
+                <button class="btn-partial" onclick="startApp('partial', 'level2')">Zahlen bis 100</button>
             </div>
 
-            <div style="background: #f0f4f8; padding: 1rem; border-radius: 16px; margin-top: 1rem;">
-                <p style="margin: 0 0 0.8rem 0; font-weight: bold; color: #5d6d7e;">Schriftliche Multiplikation</p>
-                <button onclick="startApp('written', 'level1')" style="margin-bottom: 0.8rem; background-color: #e67e22;">Zahlen bis 1000 · Einer</button>
-                <button onclick="startApp('written', 'level2')" style="background-color: #e67e22;">Zahlen bis 1000 · Zehner</button>
+            <div class="menu-section">
+                <p class="menu-section-title">Schriftliche Multiplikation</p>
+                <button class="btn-written" onclick="startApp('written', 'level1')">Zahlen bis 1000 · Einer</button>
+                <button class="btn-written" onclick="startApp('written', 'level2')">Zahlen bis 1000 · Zehner</button>
             </div>
         </div>
     </div>
@@ -375,9 +478,11 @@
                 let gridContent = `<div class="written-multiplication-container">
                     <div class="written-task" id="w-task"></div>
                     <div class="written-grid" id="w-grid"></div>
+                    <div class="carry-memory-title">Übertrag</div>
+                    <div class="carry-memory" id="carry-memory" aria-label="Übertrag merken"></div>
                 </div>`;
                 inputArea.innerHTML = gridContent + `
-                    <button id="submit-btn" onclick="checkAnswer()">Prüfen</button>
+                    <button id="submit-btn" class="written-submit" onclick="checkAnswer()">Prüfen</button>
                     <button id="next-btn" class="hidden" onclick="generateQuestion()">Nächste Aufgabe</button>
                 `;
             } else if (currentMode === 'partial') {
@@ -498,7 +603,7 @@
                 grid.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
                 
                 let gridHtml = '';
-                const multiplierStartIndex = taskStr.indexOf(multiplierStr);
+                const multiplierStartIndex = num1.toString().length + 1;
 
                 // intermediate result rows
                 if (numRows > 1) {
@@ -517,12 +622,52 @@
                     gridHtml += `<div style="position: relative;"><input type="number" id="${id}" inputmode="decimal" class="${numRows > 1 ? 'written-row-sum' : ''}">${plusSign}</div>`;
                 }
                 grid.innerHTML = gridHtml;
+
+                const carryMemory = document.getElementById('carry-memory');
+                carryMemory.innerHTML = '';
+                for (let i = 1; i <= 9; i++) {
+                    const carryButton = document.createElement('button');
+                    carryButton.type = 'button';
+                    carryButton.textContent = i;
+                    carryButton.setAttribute('aria-pressed', 'false');
+                    carryButton.addEventListener('click', () => {
+                        carryButton.classList.toggle('selected');
+                        carryButton.setAttribute('aria-pressed', carryButton.classList.contains('selected'));
+                    });
+                    carryMemory.appendChild(carryButton);
+                }
                 
                 // Add event listeners to all inputs
                 const allInputs = Array.from(grid.querySelectorAll('input'));
                 allInputs.forEach((el, index) => {
-                    el.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') checkAnswer();
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            checkAnswer();
+                            return;
+                        }
+
+                        const arrowMoves = {
+                            ArrowLeft: -1,
+                            ArrowRight: 1,
+                            ArrowUp: -cols,
+                            ArrowDown: cols
+                        };
+                        const moveBy = arrowMoves[e.key];
+
+                        if (moveBy === undefined) return;
+
+                        e.preventDefault();
+
+                        const currentIndex = allInputs.indexOf(el);
+                        const targetIndex = currentIndex + moveBy;
+                        const staysInSameRow =
+                            (e.key !== 'ArrowLeft' || currentIndex % cols !== 0) &&
+                            (e.key !== 'ArrowRight' || currentIndex % cols !== cols - 1);
+
+                        if (staysInSameRow && targetIndex >= 0 && targetIndex < allInputs.length) {
+                            allInputs[targetIndex].focus();
+                            allInputs[targetIndex].select();
+                        }
                     });
                     el.addEventListener('input', () => {
                         if (el.value.length >= 1) {
@@ -622,7 +767,7 @@
                 const numRows = multiplierStr.length;
                 const taskStr = `${num1}·${num2}=`;
                 const cols = taskStr.length;
-                const multiplierStartIndex = taskStr.indexOf(multiplierStr);
+                const multiplierStartIndex = num1.toString().length + 1;
 
                 let allIntermediateCorrect = true;
                 let finalSumCorrect = true;
